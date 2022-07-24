@@ -1,11 +1,14 @@
+from typing import Literal
+
 from gingerino import Gingerino
 
-template: str = "{{ name }} is {{ age }} years old"
+template: str = "{{ name }} is {{ age }} {{ unit }} old"
 
 
 class Validator(Gingerino):
     name: str
     age: int
+    unit: Literal["years", "months"]
 
 
 validator = Validator(template)
@@ -21,3 +24,4 @@ def test_fail_template():
 
 def test_fail_type():
     assert not validator.validate("Marco is twenty-four years old")
+    assert not validator.validate("Marco is 24 meters old")
