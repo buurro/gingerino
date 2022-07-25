@@ -131,7 +131,7 @@ class Gingerino:
 
     def _populate_object(
         self, properties: dict[str, object], target_class: Type[Any]
-    ) -> object:
+    ) -> Any:
         is_main_object = target_class == self.__class__
         children: dict[str, dict[str, object]] = {}
         current_object_properties: dict[str, object] = {}
