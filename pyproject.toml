@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gingerino"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Marco Burro <marcoburro98@gmail.com>"]
 
