@@ -1,5 +1,9 @@
 # Gingerino
 
+[![PyPI Version](https://img.shields.io/pypi/v/gingerino)](https://pypi.org/project/gingerino/)
+
+This is a proof of concept
+
 ## Usage
 
 ```python
