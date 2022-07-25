@@ -2,8 +2,6 @@ from typing import Literal
 
 from gingerino import Gingerino
 
-template: str = "{{ name }} is {{ age }} {{ unit }} old"
-
 
 class Validator(Gingerino):
     name: str
@@ -11,6 +9,7 @@ class Validator(Gingerino):
     unit: Literal["years", "months"]
 
 
+template: str = "{{ name }} is {{ age }} {{ unit }} old"
 validator = Validator(template)
 
 
@@ -25,3 +24,10 @@ def test_fail_template():
 def test_fail_type():
     assert not validator.validate("Marco is twenty-four years old")
     assert not validator.validate("Marco is 24 meters old")
+
+
+def test_newline():
+    template: str = "name: {{ name }}\nAge: {{ age }}"
+    validator = Validator(template)
+    assert validator.validate("name: Marco\nAge: 24")
+    assert not validator.validate("name: Marco\n\nAge: 24")

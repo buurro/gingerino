@@ -7,24 +7,18 @@ from typing import Literal
 
 from gingerino import Gingerino
 
-template: str = "{{ name }} is {{ age }} {{ unit }} old"
 
-
-class Validator(Gingerino):
+class UserInfo(Gingerino):
     name: str
     age: int
     unit: Literal["years", "months"]
 
 
-validator = Validator(template)
+template: str = "{{ name }} is {{ age }} {{ unit }} old"
+user = UserInfo(template)
 
+user.parse("Marco is 24 years old")
 
-validator.validate("Marco is 24 years old")
-# True
-
-validator.validate("This will fail")
-# False
-
-validator.validate("Marco is 24 meters old")
-# False
+print(user.name, user.age, user.unit)
+# Marco 24 years
 ```
