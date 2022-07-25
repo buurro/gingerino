@@ -14,7 +14,7 @@ class UserInfo(Gingerino):
     unit: Literal["years", "months"]
 
 
-template: str = "{{ name }} is {{ age }} {{ unit }} old"
+template = "{{ name }} is {{ age }} {{ unit }} old"
 user = UserInfo(template)
 
 user.parse("Marco is 24 years old")
