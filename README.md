@@ -4,6 +4,12 @@
 
 This is a proof of concept
 
+## Installation
+
+```bash
+pip install gingerino
+```
+
 ## Usage
 
 ```python
