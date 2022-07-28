@@ -54,8 +54,6 @@ def test_literal():
     assert validator.validate("that")
     assert not validator.validate("other")
 
-
-def test_literal_int():
     validator = Validator("{{ literal_int_field }}")
     assert validator.validate("12")
     assert validator.validate("24")

@@ -1,9 +1,13 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Literal, Pattern, Type, get_origin, get_type_hints
+from typing import Any, Literal, NamedTuple, Pattern, Type, get_origin, get_type_hints
 
 
 class ValidationError(Exception):
+    pass
+
+
+class TemplateError(Exception):
     pass
 
 
@@ -16,23 +20,45 @@ class ValidationResult:
         return self.valid
 
 
+class Variable(NamedTuple):
+    name: str
+    annotation: Any
+
+    @property
+    def re_friendly_name(self):
+        return self.name.replace(".", "_")
+
+    def __str__(self):
+        return self.name
+
+
 class Gingerino:
     _template: str
-    _variables: list[str]
-    _non_matching_parts: list[str]
-
+    _variables: dict[str, Variable]
     _values_match_pattern: Pattern[str]
 
     def __init__(self, template: str):
         self._template = template
 
         pattern = re.compile(r"\{\{\s*([\w\.\[\]]+)\s+\}\}")
-        self._variables = pattern.findall(template)
+        variable_names: list[str] = pattern.findall(template)
+
+        self._variables = {}
+        for variable_name in variable_names:
+            self._variables[variable_name] = Variable(
+                variable_name,
+                Gingerino._get_class_property_annotation(self.__class__, variable_name),
+            )
 
         pattern = re.compile(r"\{\{\s*[\w\.\[\]]+\s+\}\}")
-        self._non_matching_parts = pattern.split(template)
+        non_matching_parts = pattern.split(template)
 
-        pattern_str = r"(.*)".join([re.escape(nm) for nm in self._non_matching_parts])
+        pattern_str = ""
+        for i, part in enumerate(non_matching_parts):
+            pattern_str += re.escape(part)
+            if i < len(variable_names):
+                variable = self._variables[variable_names[i]]
+                pattern_str += r"(?P<{}>.*)".format(variable.re_friendly_name)
         pattern_str = f"^{pattern_str}$"
         self._values_match_pattern = re.compile(pattern_str)
 
@@ -43,7 +69,9 @@ class Gingerino:
             return ValidationResult(False, str(e))
 
         for variable, value in pairs:
-            if not self._check_if_value_matches_type(variable, value, self.__class__):
+            try:
+                self._cast_value_to_type(variable, value)
+            except Exception as e:
                 return ValidationResult(
                     False, f"{value} is not a valid value for {variable}"
                 )
@@ -59,69 +87,28 @@ class Gingerino:
 
         properties: dict[str, object] = {}
         for variable, value in pairs:
-            casted_value = self._cast_value_to_type(variable, value, self.__class__)
-            properties[variable] = casted_value
+            casted_value = self._cast_value_to_type(variable, value)
+            properties[variable.name] = casted_value
 
-        self._populate_object(properties, self.__class__)
+        self._populate_object(self.__class__, properties)
 
         return ValidationResult(True, "")
 
-    def _get_variable_value_pairs(self, text: str) -> list[tuple[str, str]]:
-        result = self._values_match_pattern.findall(text)
+    def _get_variable_value_pairs(self, text: str) -> list[tuple[Variable, str]]:
+        result = self._values_match_pattern.match(text)
         if not result:
             raise ValidationError("No match found")
+        values = result.groupdict()
 
-        values: list[str] | tuple[str]
-        if isinstance(result[0], str):
-            values = result
-        else:
-            values = result[0]
+        pairs: list[tuple[Variable, str]] = []
+        for variable in self._variables.values():
+            value = values[variable.re_friendly_name]
+            pairs.append((variable, value))
 
-        if len(values) != len(self._variables):
-            raise ValidationError("Number of variables does not match")
+        return pairs
 
-        return [tuple(pair) for pair in zip(self._variables, values)]
-
-    def _check_if_value_matches_type(
-        self, variable: str, value: str, target_class: Type[object]
-    ) -> bool:
-        annotations = get_type_hints(target_class)
-
-        if "." in variable:
-            current_class_property = variable.split(".", maxsplit=1)[0]
-            if current_class_property not in annotations:
-                return False
-            child_class = annotations[current_class_property]
-            return self._check_if_value_matches_type(
-                variable.split(".")[1], value, child_class
-            )
-
-        if variable not in annotations:
-            return False
-        annotation = annotations[variable]
-
-        if get_origin(annotation) == Literal:
-            literals = [str(literal) for literal in annotation.__args__]
-            if value not in literals:
-                return False
-        else:
-            try:
-                _ = annotation(value)
-            except Exception:
-                return False
-        return True
-
-    def _cast_value_to_type(
-        self, variable: str, value: str, target_class: Type[object]
-    ) -> object:
-        annotations = get_type_hints(target_class)
-
-        if "." in variable:
-            current_class_property = variable.split(".", maxsplit=1)[0]
-            child_class = annotations[current_class_property]
-            return self._cast_value_to_type(variable.split(".")[1], value, child_class)
-
-        annotation = annotations[variable]
+    def _cast_value_to_type(self, variable: Variable, value: str):
+        annotation = variable.annotation
         if annotation == str:
             return value
         if get_origin(annotation) == Literal:
@@ -130,9 +117,8 @@ class Gingerino:
         return annotation(value)
 
     def _populate_object(
-        self, properties: dict[str, object], target_class: Type[Any]
+        self, target_class: Type[Any], properties: dict[str, object], root: bool = True
     ) -> Any:
-        is_main_object = target_class == self.__class__
         children: dict[str, dict[str, object]] = {}
         current_object_properties: dict[str, object] = {}
         for variable, value in properties.items():
@@ -145,21 +131,32 @@ class Gingerino:
                 current_object_properties[variable] = value
 
         annotations = get_type_hints(target_class)
-        if is_main_object:
+        for child, child_properties in children.items():
+            child_class = annotations[child]
+            current_object_properties[child] = self._populate_object(
+                child_class, child_properties, root=False
+            )
+
+        if root:
             for key, value in current_object_properties.items():
                 setattr(self, key, value)
-            for child, child_properties in children.items():
-                child_class = annotations[child]
-                setattr(
-                    self,
-                    child,
-                    self._populate_object(child_properties, child_class),
-                )
             return self
         else:
-            for child, child_properties in children.items():
-                child_class = annotations[child]
-                current_object_properties[child] = self._populate_object(
-                    child_properties, child_class
-                )
             return target_class(**current_object_properties)
+
+    @staticmethod
+    def _get_class_property_annotation(target_class: Type[Any], property: str) -> Any:
+        annotations = get_type_hints(target_class)
+        if "." in property:
+            current_class_property, child_class_property = property.split(
+                ".", maxsplit=1
+            )
+            child_class = annotations[current_class_property]
+            return Gingerino._get_class_property_annotation(
+                child_class, child_class_property
+            )
+
+        try:
+            return annotations[property]
+        except KeyError:
+            raise TemplateError(f"'{property}' is not valid")
