@@ -30,4 +30,3 @@ def test_newline():
     template: str = "name: {{ name }}\nAge: {{ age }}"
     validator = Validator(template)
     assert validator.validate("name: Marco\nAge: 24")
-    assert not validator.validate("name: Marco\n\nAge: 24")

@@ -60,7 +60,7 @@ class Gingerino:
                 variable = self._variables[variable_names[i]]
                 pattern_str += r"(?P<{}>.*)".format(variable.re_friendly_name)
         pattern_str = f"^{pattern_str}$"
-        self._values_match_pattern = re.compile(pattern_str)
+        self._values_match_pattern = re.compile(pattern_str, re.DOTALL)
 
     def validate(self, text: str) -> ValidationResult:
         try:
