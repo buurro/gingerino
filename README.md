@@ -13,22 +13,22 @@ pip install gingerino
 ## Usage
 
 ```python
+from dataclasses import dataclass
 from typing import Literal
 
-from gingerino import Gingerino
+from gingerino import parserino
 
 
-class UserInfo(Gingerino):
+@dataclass
+class UserInfo:
     name: str
     age: int
     unit: Literal["years", "months"]
 
 
 template = "{{ name }} is {{ age }} {{ unit }} old"
-user = UserInfo(template)
+user = parserino(UserInfo, template, "Marco is 24 years old")
 
-user.parse("Marco is 24 years old")
-
-print(user.name, user.age, user.unit)
-# Marco 24 years
+print(user.name, user.age)
+# Marco 24
 ```

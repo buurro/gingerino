@@ -1,16 +1,10 @@
 {
     "[python]": {
         "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-        }
+        "editor.defaultFormatter": "charliermarsh.ruff",
     },
     "python.analysis.typeCheckingMode": "strict",
-    "python.formatting.provider": "black",
     "python.languageServer": "Pylance",
-    "python.sortImports.args": [
-        "--profile", "black"
-    ],
     "python.testing.pytestArgs": [
         "tests"
     ],

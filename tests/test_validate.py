@@ -1,16 +1,18 @@
+from dataclasses import dataclass
 from typing import Literal
 
 from gingerino import Gingerino
 
 
-class Validator(Gingerino):
+@dataclass
+class Validator:
     name: str
     age: int
     unit: Literal["years", "months"]
 
 
 template: str = "{{ name }} is {{ age }} {{ unit }} old"
-validator = Validator(template)
+validator = Gingerino(Validator, template)
 
 
 def test_success():
@@ -28,5 +30,5 @@ def test_fail_type():
 
 def test_newline():
     template: str = "name: {{ name }}\nAge: {{ age }}"
-    validator = Validator(template)
+    validator = Gingerino(Validator, template)
     assert validator.validate("name: Marco\nAge: 24")

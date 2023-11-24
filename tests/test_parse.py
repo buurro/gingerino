@@ -2,28 +2,32 @@ from dataclasses import dataclass
 from ipaddress import IPv4Address
 from typing import Literal
 
-from gingerino import Gingerino
+from gingerino import parserino
+from gingerino.main import ValidationError
+
+import pytest
 
 
-class UserData(Gingerino):
+@dataclass
+class UserData:
     name: str
     age: int
     unit: Literal["years", "months"]
 
 
 template: str = "{{ name }} is {{ age }} {{ unit }} old"
-user_data = UserData(template)
 
 
 def test_success():
-    assert user_data.parse("Marco is 24 years old")
+    user_data = parserino(UserData, template, "Marco is 24 years old")
     assert user_data.name == "Marco"
     assert user_data.age == 24
     assert user_data.unit == "years"
 
 
 def test_fail():
-    assert not user_data.parse("Something")
+    with pytest.raises(ValidationError):
+        parserino(UserData, template, "Something")
 
 
 def test_subclass():
@@ -32,16 +36,17 @@ def test_subclass():
         ip: IPv4Address
         port: int
 
-    class ConnectedUser(Gingerino):
+    @dataclass
+    class ConnectedUser:
         name: str
         connection: Connection
 
     template = (
         "User '{{ name }}' connected from {{ connection.ip }}:{{ connection.port }}"
     )
-    user = ConnectedUser(template)
+    input_string = "User 'marco' connected from 192.168.1.2:12987"
 
-    assert user.parse("User 'marco' connected from 192.168.1.2:12987")
+    user = parserino(ConnectedUser, template, input_string)
 
     assert user.name == "marco"
     assert user.connection.ip == IPv4Address("192.168.1.2")

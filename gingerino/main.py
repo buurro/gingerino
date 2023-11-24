@@ -1,6 +1,15 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Literal, NamedTuple, Pattern, Type, get_origin, get_type_hints
+from typing import (
+    Any,
+    Literal,
+    NamedTuple,
+    Pattern,
+    Type,
+    TypeVar,
+    get_origin,
+    get_type_hints,
+)
 
 
 class ValidationError(Exception):
@@ -33,11 +42,13 @@ class Variable(NamedTuple):
 
 
 class Gingerino:
+    _type: Type[Any]
     _template: str
     _variables: dict[str, Variable]
     _values_match_pattern: Pattern[str]
 
-    def __init__(self, template: str):
+    def __init__(self, type: Type[Any], template: str):
+        self._type = type
         self._template = template
 
         pattern = re.compile(r"\{\{\s*([\w\.\[\]]+)\s+\}\}")
@@ -47,7 +58,7 @@ class Gingerino:
         for variable_name in variable_names:
             self._variables[variable_name] = Variable(
                 variable_name,
-                Gingerino._get_class_property_annotation(self.__class__, variable_name),
+                Gingerino._get_class_property_annotation(self._type, variable_name),
             )
 
         pattern = re.compile(r"\{\{\s*[\w\.\[\]]+\s+\}\}")
@@ -71,17 +82,17 @@ class Gingerino:
         for variable, value in pairs:
             try:
                 self._cast_value_to_type(variable, value)
-            except Exception as e:
+            except Exception:
                 return ValidationResult(
                     False, f"{value} is not a valid value for {variable}"
                 )
         return ValidationResult(True, "")
 
-    def parse(self, text: str) -> ValidationResult:
+    def parse(self, text: str) -> Any:
         validation_result = self.validate(text)
 
         if not validation_result:
-            return validation_result
+            raise ValidationError(validation_result.message)
 
         pairs = self._get_variable_value_pairs(text)
 
@@ -90,9 +101,7 @@ class Gingerino:
             casted_value = self._cast_value_to_type(variable, value)
             properties[variable.name] = casted_value
 
-        self._populate_object(self.__class__, properties)
-
-        return ValidationResult(True, "")
+        return self._populate_object(self._type, properties)
 
     def _get_variable_value_pairs(self, text: str) -> list[tuple[Variable, str]]:
         result = self._values_match_pattern.match(text)
@@ -160,3 +169,10 @@ class Gingerino:
             return annotations[property]
         except KeyError:
             raise TemplateError(f"'{property}' is not valid")
+
+
+T = TypeVar("T")
+
+
+def parserino(type: Type[T], template: str, input: str) -> T:
+    return Gingerino(type, template).parse(input)

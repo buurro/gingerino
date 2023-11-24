@@ -12,7 +12,8 @@ class DataClassField:
     int_field: int
 
 
-class Validator(Gingerino):
+@dataclass
+class Validator:
     string_field: str
 
     int_field: int
@@ -28,33 +29,33 @@ class Validator(Gingerino):
 
 
 def test_string():
-    assert Validator("{{ string_field }}").validate("Hi!")
+    assert Gingerino(Validator, "{{ string_field }}").validate("Hi!")
 
 
 def test_numeric():
-    validator = Validator("{{ int_field }}")
+    validator = Gingerino(Validator, "{{ int_field }}")
     assert validator.validate("42")
     assert not validator.validate("42.5")
     assert not validator.validate("forty-two")
 
-    validator = Validator("{{ float_field }}")
+    validator = Gingerino(Validator, "{{ float_field }}")
     assert validator.validate("42")
     assert validator.validate("42.5")
     assert not validator.validate("forty-two")
 
-    validator = Validator("{{ decimal_field }}")
+    validator = Gingerino(Validator, "{{ decimal_field }}")
     assert validator.validate("42")
     assert validator.validate("42.5")
     assert not validator.validate("forty-two")
 
 
 def test_literal():
-    validator = Validator("{{ literal_field }}")
+    validator = Gingerino(Validator, "{{ literal_field }}")
     assert validator.validate("this")
     assert validator.validate("that")
     assert not validator.validate("other")
 
-    validator = Validator("{{ literal_int_field }}")
+    validator = Gingerino(Validator, "{{ literal_int_field }}")
     assert validator.validate("12")
     assert validator.validate("24")
     assert not validator.validate("42")
@@ -62,15 +63,15 @@ def test_literal():
 
 
 def test_ip_address():
-    validator = Validator("{{ ip_address_field }}")
+    validator = Gingerino(Validator, "{{ ip_address_field }}")
     assert validator.validate("192.168.1.1")
     assert not validator.validate("192.168.888.888")
 
 
 def test_subclass():
-    validator = Validator("{{ dataclass_field.string_field }}")
+    validator = Gingerino(Validator, "{{ dataclass_field.string_field }}")
     assert validator.validate("some text")
 
-    validator = Validator("{{ dataclass_field.int_field }}")
+    validator = Gingerino(Validator, "{{ dataclass_field.int_field }}")
     assert validator.validate("42")
     assert not validator.validate("42.5")
