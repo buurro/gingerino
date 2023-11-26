@@ -1,4 +1,5 @@
 import re
+import types
 import typing
 from dataclasses import dataclass
 from typing import Any, Callable, Type, TypeVar, get_origin, get_type_hints
@@ -77,7 +78,7 @@ class Gingerino(typing.Generic[T]):
         for variable, value in pairs:
             try:
                 self._cast_value_to_type(variable, value)
-            except Exception:
+            except Exception as _:
                 return ValidationResult(
                     False, f"{value} is not a valid value for {variable}"
                 )
@@ -111,17 +112,33 @@ class Gingerino(typing.Generic[T]):
 
         return pairs
 
-    def _cast_value_to_type(self, variable: Variable, value: str):
+    def _cast_value_to_type(self, variable: Variable, value: str) -> Any:
         annotation = variable.annotation
+        if annotation == type(None):
+            return None
         if annotation == str:
             return value
+
+        if get_origin(annotation) == types.UnionType:
+            for union_type in annotation.__args__:
+                try:
+                    return self._cast_value_to_type(
+                        Variable(variable.name, union_type), value
+                    )
+                except Exception:
+                    pass
+            raise ValueError(f"{value} is not a valid value for {variable}")
+
         if get_origin(annotation) == typing.Literal:
             literals = [str(literal) for literal in annotation.__args__]
             return annotation.__args__[literals.index(value)]
         return annotation(value)
 
     def _populate_object(
-        self, target_class: Type[Any], properties: dict[str, object], root: bool = True
+        self,
+        target_class: Callable[..., Any],
+        properties: dict[str, object],
+        root: bool = True,
     ) -> Any:
         children: dict[str, dict[str, object]] = {}
         current_object_properties: dict[str, object] = {}
@@ -149,7 +166,9 @@ class Gingerino(typing.Generic[T]):
             return target_class(**current_object_properties)
 
     @staticmethod
-    def _get_class_property_annotation(target_class: Type[Any], property: str) -> Any:
+    def _get_class_property_annotation(
+        target_class: Callable[..., Any], property: str
+    ) -> Any:
         annotations = get_type_hints(target_class)
         if "." in property:
             current_class_property, child_class_property = property.split(
