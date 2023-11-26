@@ -1,15 +1,7 @@
 import re
+import typing
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Literal,
-    NamedTuple,
-    Pattern,
-    Type,
-    TypeVar,
-    get_origin,
-    get_type_hints,
-)
+from typing import Any, Type, TypeVar, get_origin, get_type_hints
 
 
 class ValidationError(Exception):
@@ -29,7 +21,7 @@ class ValidationResult:
         return self.valid
 
 
-class Variable(NamedTuple):
+class Variable(typing.NamedTuple):
     name: str
     annotation: Any
 
@@ -45,7 +37,7 @@ class Gingerino:
     _type: Type[Any]
     _template: str
     _variables: dict[str, Variable]
-    _values_match_pattern: Pattern[str]
+    _values_match_pattern: typing.Pattern[str]
 
     def __init__(self, type: Type[Any], template: str):
         self._type = type
@@ -120,7 +112,7 @@ class Gingerino:
         annotation = variable.annotation
         if annotation == str:
             return value
-        if get_origin(annotation) == Literal:
+        if get_origin(annotation) == typing.Literal:
             literals = [str(literal) for literal in annotation.__args__]
             return annotation.__args__[literals.index(value)]
         return annotation(value)
