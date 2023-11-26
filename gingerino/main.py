@@ -1,7 +1,7 @@
 import re
 import typing
 from dataclasses import dataclass
-from typing import Any, Type, TypeVar, get_origin, get_type_hints
+from typing import Any, Callable, Type, TypeVar, get_origin, get_type_hints
 
 
 class ValidationError(Exception):
@@ -33,14 +33,17 @@ class Variable(typing.NamedTuple):
         return self.name
 
 
-class Gingerino:
-    _type: Type[Any]
+T = TypeVar("T")
+
+
+class Gingerino(typing.Generic[T]):
+    _type: Callable[..., T]
     _template: str
     _variables: dict[str, Variable]
     _values_match_pattern: typing.Pattern[str]
 
-    def __init__(self, type: Type[Any], template: str):
-        self._type = type
+    def __init__(self, type_: Callable[..., T], template: str):
+        self._type = type_
         self._template = template
 
         pattern = re.compile(r"\{\{\s*([\w\.\[\]]+)\s+\}\}")
@@ -80,7 +83,7 @@ class Gingerino:
                 )
         return ValidationResult(True, "")
 
-    def parse(self, text: str) -> Any:
+    def parse(self, text: str) -> T:
         validation_result = self.validate(text)
 
         if not validation_result:
@@ -161,9 +164,6 @@ class Gingerino:
             return annotations[property]
         except KeyError:
             raise TemplateError(f"'{property}' is not valid")
-
-
-T = TypeVar("T")
 
 
 def parserino(type: Type[T], template: str, input: str) -> T:
