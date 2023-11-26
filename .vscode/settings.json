@@ -2,6 +2,9 @@
     "[python]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true,
+        }
     },
     "python.analysis.typeCheckingMode": "strict",
     "python.languageServer": "Pylance",
