@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from ipaddress import IPv4Address
 from typing import Literal
 
+import pytest
+
 from gingerino import parserino
 from gingerino.main import ValidationError
-
-import pytest
 
 
 @dataclass
@@ -51,3 +51,11 @@ def test_subclass():
     assert user.name == "marco"
     assert user.connection.ip == IPv4Address("192.168.1.2")
     assert user.connection.port == 12987
+
+
+def test_empty_string():
+    @dataclass
+    class Data:
+        name: str
+
+    assert parserino(Data, "{{ name }}", "").name == ""
