@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from ipaddress import IPv4Address
+from ipaddress import IPv4Address, IPv6Address
 from typing import Literal
 
 import pytest
 
-from gingerino import parserino
+from gingerino import Gingerino, parserino
 from gingerino.main import ValidationError
 
 
@@ -59,3 +59,17 @@ def test_empty_string():
         name: str
 
     assert parserino(Data, "{{ name }}", "").name == ""
+
+
+def test_union():
+    @dataclass
+    class Data:
+        ip: IPv4Address | IPv6Address
+
+    parser = Gingerino(Data, "{{ ip }}")
+
+    assert parser.parse("127.0.0.1").ip == IPv4Address("127.0.0.1")
+    assert parser.parse("::1").ip == IPv6Address("::1")
+
+    with pytest.raises(ValidationError):
+        parser.parse("888.888.888.888")

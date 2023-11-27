@@ -1,7 +1,7 @@
 import ipaddress
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, Union
 
 from gingerino import Gingerino
 
@@ -26,6 +26,9 @@ class Validator:
     dataclass_field: DataClassField
 
     ip_address_field: ipaddress.IPv4Address
+
+    union_field_1: Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
+    union_field_2: ipaddress.IPv4Address | ipaddress.IPv6Address
 
 
 def test_string():
@@ -75,3 +78,15 @@ def test_subclass():
     validator = Gingerino(Validator, "{{ dataclass_field.int_field }}")
     assert validator.validate("42")
     assert not validator.validate("42.5")
+
+
+def test_union():
+    validator = Gingerino(Validator, "{{ union_field_1 }}")
+    assert validator.validate("127.0.0.1")
+    assert validator.validate("::1")
+    assert not validator.validate("345.345.345.345")
+
+    validator = Gingerino(Validator, "{{ union_field_2 }}")
+    assert validator.validate("127.0.0.1")
+    assert validator.validate("::1")
+    assert not validator.validate("345.345.345.345")
