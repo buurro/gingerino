@@ -119,7 +119,7 @@ class Gingerino(typing.Generic[T]):
         if annotation == str:
             return value
 
-        if get_origin(annotation) == types.UnionType:
+        if get_origin(annotation) in [typing.Union, types.UnionType]:
             for union_type in annotation.__args__:
                 try:
                     return self._cast_value_to_type(
