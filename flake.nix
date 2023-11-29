@@ -12,9 +12,15 @@
 
   outputs = { self, nixpkgs, flake-utils, poetry2nix }: flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = nixpkgs.legacyPackages.${system};
-      inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryEnv mkPoetryApplication;
-      gingerino = mkPoetryApplication {
+      pkgs = import nixpkgs {
+        inherit system;
+      };
+
+      p2nix = poetry2nix.lib.mkPoetry2Nix {
+        inherit pkgs;
+      };
+
+      gingerino = p2nix.mkPoetryApplication {
         projectDir = self;
         python = pkgs.python311;
         preferWheels = true;
