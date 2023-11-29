@@ -16,10 +16,11 @@ class UserData:
 
 
 template: str = "{{ name }} is {{ age }} {{ unit }} old"
+parser = Gingerino(UserData, template)
 
 
 def test_success():
-    user_data = parserino(UserData, template, "Marco is 24 years old")
+    user_data = parser.parse("Marco is 24 years old")
     assert user_data.name == "Marco"
     assert user_data.age == 24
     assert user_data.unit == "years"
@@ -27,7 +28,7 @@ def test_success():
 
 def test_fail():
     with pytest.raises(ValidationError):
-        parserino(UserData, template, "Something")
+        parser.parse("Something")
 
 
 def test_subclass():
@@ -73,3 +74,12 @@ def test_union():
 
     with pytest.raises(ValidationError):
         parser.parse("888.888.888.888")
+
+
+def test_empty_int():
+    @dataclass
+    class Data:
+        age: int
+
+    with pytest.raises(ValidationError):
+        parserino(Data, "{{ age }}", "")

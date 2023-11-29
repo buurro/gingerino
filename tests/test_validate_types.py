@@ -1,6 +1,6 @@
-import ipaddress
 from dataclasses import dataclass
 from decimal import Decimal
+from ipaddress import IPv4Address, IPv6Address
 from typing import Literal, Union
 
 from gingerino import Gingerino
@@ -25,10 +25,10 @@ class Validator:
 
     dataclass_field: DataClassField
 
-    ip_address_field: ipaddress.IPv4Address
+    ip_address_field: IPv4Address
 
-    union_field_1: Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
-    union_field_2: ipaddress.IPv4Address | ipaddress.IPv6Address
+    union_field_1: Union[IPv4Address, IPv6Address]
+    union_field_2: IPv4Address | IPv6Address
 
 
 def test_string():
