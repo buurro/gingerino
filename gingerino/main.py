@@ -80,7 +80,7 @@ class Gingerino(typing.Generic[T]):
                 self._cast_value_to_type(variable, value)
             except Exception as _:
                 return ValidationResult(
-                    False, f"{value} is not a valid value for {variable}"
+                    False, f"'{value}' is not a valid value for {variable}"
                 )
         return ValidationResult(True, "")
 
@@ -127,7 +127,7 @@ class Gingerino(typing.Generic[T]):
                     )
                 except Exception:
                     pass
-            raise ValueError(f"{value} is not a valid value for {variable}")
+            raise ValueError(f"'{value}' is not a valid value for {variable}")
 
         if get_origin(annotation) == typing.Literal:
             literals = [str(literal) for literal in annotation.__args__]
