@@ -10,6 +10,4 @@ jobs:
     - uses: cachix/install-nix-action@v22
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    # TODO: use poetry2nix
-    - run: nix develop -c poetry install
-    - run: nix develop -c poetry run pytest
+    - run: nix build
