@@ -35,7 +35,10 @@
       };
     in
     {
-      packages.default = gingerino;
+      packages = {
+        default = gingerino;
+        dist = gingerino.dist;
+      };
     }
   );
 }
