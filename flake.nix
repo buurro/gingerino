@@ -27,7 +27,8 @@
         checkPhase = ''
           runHook preCheck
 
-          python -m pytest
+          ruff .
+          pytest
 
           runHook postCheck
         '';
