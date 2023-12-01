@@ -38,6 +38,11 @@
       packages = {
         default = gingerino;
       };
+      devShells = {
+        default = pkgs.mkShellNoCC {
+          buildInputs = gingerino.buildInputs;
+        };
+      };
     }
   );
 }
