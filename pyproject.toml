@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gingerino"
-version = "0.1.4"
+version = "0.1.5"
 description = "Parse strings using Jinja-style templates"
 authors = ["Marco Burro <marcoburro98@gmail.com>"]
 
