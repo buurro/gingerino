@@ -22,7 +22,7 @@
 
       gingerino = p2nix.mkPoetryApplication {
         projectDir = self;
-        python = pkgs.python311;
+        python = pkgs.python312;
         preferWheels = true;
         checkPhase = ''
           runHook preCheck
