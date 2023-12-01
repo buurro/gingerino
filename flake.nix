@@ -37,7 +37,6 @@
     {
       packages = {
         default = gingerino;
-        dist = gingerino.dist;
       };
     }
   );
