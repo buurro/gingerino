@@ -28,6 +28,7 @@
           runHook preCheck
 
           ruff .
+          ruff format --check .
           pytest
 
           runHook postCheck
