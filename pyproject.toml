@@ -7,6 +7,11 @@ authors = ["Marco Burro <marcoburro98@gmail.com>"]
 readme = "README.md"
 repository = "https://github.com/buurro/gingerino"
 
+[tool.ruff.lint]
+select = [
+    "I001", # isort
+]
+
 [tool.poetry.dependencies]
 python = "^3.10"
 
