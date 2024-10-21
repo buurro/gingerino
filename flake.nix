@@ -2,7 +2,7 @@
   description = "Gingerino's stuff";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -22,7 +22,7 @@
 
       gingerino = p2nix.mkPoetryApplication {
         projectDir = self;
-        python = pkgs.python312;
+        python = pkgs.python313;
         preferWheels = true;
         checkPhase = ''
           runHook preCheck
