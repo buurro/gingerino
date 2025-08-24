@@ -4,44 +4,43 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }: flake-utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils }: flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import nixpkgs {
         inherit system;
       };
-
-      p2nix = poetry2nix.lib.mkPoetry2Nix {
-        inherit pkgs;
-      };
-
-      gingerino = p2nix.mkPoetryApplication {
-        projectDir = self;
-        python = pkgs.python313;
-        preferWheels = true;
-        checkPhase = ''
-          runHook preCheck
-
-          ruff check .
-          ruff format --check .
-          pytest
-
-          runHook postCheck
-        '';
-      };
+      uv = pkgs.uv;
     in
     {
-      packages = {
-        default = gingerino;
+      packages = rec {
+        check = pkgs.writeShellScriptBin "check" ''
+          ${uv}/bin/uv run ruff format --check
+          ${uv}/bin/uv run ruff check
+        '';
+
+        test = pkgs.writeShellScriptBin "test" ''
+          ${uv}/bin/uv run pytest
+        '';
+
+        build = pkgs.writeShellScriptBin "build" ''
+          ${check}/bin/check
+          ${test}/bin/test
+
+          rm -rf dist
+          ${uv}/bin/uv build "$@"
+        '';
+
+        publish = pkgs.writeShellScriptBin "publish" ''
+          ${build}/bin/build
+
+          ${uv}/bin/uv publish
+        '';
       };
       devShells = {
         default = pkgs.mkShellNoCC {
-          buildInputs = gingerino.buildInputs;
+          buildInputs = [ uv ];
         };
       };
     }
