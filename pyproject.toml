@@ -1,6 +1,6 @@
 [project]
 name = "gingerino"
-version = "0.1.5"
+version = "0.1.6"
 description = "Parse strings using Jinja-style templates"
 authors = [{name = "Marco Burro", email = "marcoburro98@gmail.com"}]
 readme = "README.md"
