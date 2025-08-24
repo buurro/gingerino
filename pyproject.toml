@@ -1,24 +1,22 @@
-[tool.poetry]
+[project]
 name = "gingerino"
 version = "0.1.5"
 description = "Parse strings using Jinja-style templates"
-authors = ["Marco Burro <marcoburro98@gmail.com>"]
-
+authors = [{name = "Marco Burro", email = "marcoburro98@gmail.com"}]
 readme = "README.md"
-repository = "https://github.com/buurro/gingerino"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["gingerino*"]
 
 [tool.ruff.lint]
 select = [
     "I001", # isort
 ]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-ruff = "^0.12.0"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "ruff>=0.12.10",
+]
