@@ -16,15 +16,18 @@
     {
       packages = rec {
         check = pkgs.writeShellScriptBin "check" ''
+          set -eu
           ${uv}/bin/uv run ruff format --check
           ${uv}/bin/uv run ruff check
         '';
 
         test = pkgs.writeShellScriptBin "test" ''
+          set -eu
           ${uv}/bin/uv run pytest
         '';
 
         build = pkgs.writeShellScriptBin "build" ''
+          set -eu
           ${check}/bin/check
           ${test}/bin/test
 
@@ -33,6 +36,7 @@
         '';
 
         publish = pkgs.writeShellScriptBin "publish" ''
+          set -eu
           ${build}/bin/build
 
           ${uv}/bin/uv publish
